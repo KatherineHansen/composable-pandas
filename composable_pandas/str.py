@@ -68,4 +68,4 @@ def find(sub, col, start=0, end=None):
     --------
     rfind : Return highest indexes in each strings.
     """
-    return col.str.find()
+    return col.str.find(sub, start, end)
