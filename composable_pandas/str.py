@@ -43,3 +43,57 @@ def capitalize(col):
     
     """
     return col.str.capitalize()
+
+
+@pipeable
+def get(i, col):
+    """Extract element from each component at specified position.
+    
+    Extract element from lists, tuples, or strings in each element in the
+    Series/Index.
+    
+    Parameters
+    ----------
+    i : int
+        Position of element to extract.
+    
+    Returns
+    -------
+    Series or Index
+    
+    Examples
+    --------
+    >>> s = pd.Series(["String",
+    ...               (1, 2, 3),
+    ...               ["a", "b", "c"],
+    ...               123,
+    ...               -456,
+    ...               {1: "Hello", "2": "World"}])
+    >>> s
+    0                        String
+    1                     (1, 2, 3)
+    2                     [a, b, c]
+    3                           123
+    4                          -456
+    5    {1: 'Hello', '2': 'World'}
+    dtype: object
+    
+    >>> s >> get(1)
+    0        t
+    1        2
+    2        b
+    3      NaN
+    4      NaN
+    5    Hello
+    dtype: object
+    
+    >>> s >> get(-1)
+    0      g
+    1      3
+    2      c
+    3    NaN
+    4    NaN
+    5    None
+    dtype: object
+    """
+    return col.str.get(i)
