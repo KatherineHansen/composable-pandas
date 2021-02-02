@@ -1,4 +1,4 @@
-from composable_pandas.str import capitalize
+from composable_pandas.str import capitalize, find
 from datetime import datetime
 
 import numpy as np
@@ -17,3 +17,42 @@ def test_capitalize():
     mixed = mixed >> capitalize()
     exp = Series(["Foo", np.nan, "Bar", np.nan, np.nan, "Blah", np.nan, np.nan, np.nan])
     tm.assert_almost_equal(mixed, exp)
+
+
+def test_find():
+    values = Series(["ABCDEFG", "BCDEFEF", "DEFGHIJEF", "EFGHEF", "XXXX"])
+    result = values >> find("EF")
+    tm.assert_series_equal(result, Series([4, 3, 1, 0, -1]))
+    expected = np.array([v.find("EF") for v in values.values], dtype=np.int64)
+    tm.assert_numpy_array_equal(result.values, expected)
+
+    result = values.str.rfind("EF")
+    tm.assert_series_equal(result, Series([4, 5, 7, 4, -1]))
+    expected = np.array([v.rfind("EF") for v in values.values], dtype=np.int64)
+    tm.assert_numpy_array_equal(result.values, expected)
+
+    result = values >> find("EF", 3)
+    tm.assert_series_equal(result, Series([4, 3, 7, 4, -1]))
+    expected = np.array([v.find("EF", 3) for v in values.values], dtype=np.int64)
+    tm.assert_numpy_array_equal(result.values, expected)
+
+    result = values.str.rfind("EF", 3)
+    tm.assert_series_equal(result, Series([4, 5, 7, 4, -1]))
+    expected = np.array([v.rfind("EF", 3) for v in values.values], dtype=np.int64)
+    tm.assert_numpy_array_equal(result.values, expected)
+
+    result = values >> find("EF", 3, 6)
+    tm.assert_series_equal(result, Series([4, 3, -1, 4, -1]))
+    expected = np.array([v.find("EF", 3, 6) for v in values.values], dtype=np.int64)
+    tm.assert_numpy_array_equal(result.values, expected)
+
+    result = values.str.rfind("EF", 3, 6)
+    tm.assert_series_equal(result, Series([4, 3, -1, 4, -1]))
+    expected = np.array([v.rfind("EF", 3, 6) for v in values.values], dtype=np.int64)
+    tm.assert_numpy_array_equal(result.values, expected)
+
+    with pytest.raises(TypeError, match="expected a string object, not int"):
+        result = values >> find(0)
+
+    with pytest.raises(TypeError, match="expected a string object, not int"):
+        result = values.str.rfind(0)

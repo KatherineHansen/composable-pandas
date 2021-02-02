@@ -43,3 +43,29 @@ def capitalize(col):
     
     """
     return col.str.capitalize()
+
+
+@pipeable
+def find(sub, col, start=0, end=None):
+    """Return lowest indexes in each strings in the Series/Index
+    where the substring is fully contained between [start:end].
+    Return -1 on failure. Equivalent to standard :meth:`str.find`.
+    
+    Parameters
+    ----------
+    sub : str
+        Substring being searched.
+    start : int
+        Left edge index.
+    end : int
+        Right edge index.
+    
+    Returns
+    -------
+    Series or Index of int.
+
+    See Also
+    --------
+    rfind : Return highest indexes in each strings.
+    """
+    return col.str.find()
