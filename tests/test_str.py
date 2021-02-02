@@ -1,4 +1,4 @@
-from composable_pandas.str import capitalize
+from composable_pandas.str import capitalize, findall
 from datetime import datetime
 
 import numpy as np
@@ -17,3 +17,44 @@ def test_capitalize():
     mixed = mixed >> capitalize()
     exp = Series(["Foo", np.nan, "Bar", np.nan, np.nan, "Blah", np.nan, np.nan, np.nan])
     tm.assert_almost_equal(mixed, exp)
+
+
+def test_findall():
+    values = Series(["fooBAD__barBAD", np.nan, "foo", "BAD"])
+
+    result = values >> findall("BAD[_]*")
+    exp = Series([["BAD__", "BAD"], np.nan, [], ["BAD"]])
+    tm.assert_almost_equal(result, exp)
+
+    # mixed
+    mixed = Series(
+        [
+            "fooBAD__barBAD",
+            np.nan,
+            "foo",
+            True,
+            datetime.today(),
+            "BAD",
+            None,
+            1,
+            2.0,
+        ]
+    )
+
+    rs = Series(mixed) >> findall("BAD[_]*")
+    xp = Series(
+        [
+            ["BAD__", "BAD"],
+            np.nan,
+            [],
+            np.nan,
+            np.nan,
+            ["BAD"],
+            np.nan,
+            np.nan,
+            np.nan,
+        ]
+    )
+
+    assert isinstance(rs, Series)
+    tm.assert_almost_equal(rs, xp)
