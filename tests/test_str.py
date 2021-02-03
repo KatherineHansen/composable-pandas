@@ -31,7 +31,7 @@ def test_find():
     expected = np.array([v.rfind("EF") for v in values.values], dtype=np.int64)
     tm.assert_numpy_array_equal(result.values, expected)
 
-    result = values >> find("EF", 3)
+    result = values >> find("EF", start=3)
     tm.assert_series_equal(result, Series([4, 3, 7, 4, -1]))
     expected = np.array([v.find("EF", 3) for v in values.values], dtype=np.int64)
     tm.assert_numpy_array_equal(result.values, expected)
@@ -41,12 +41,12 @@ def test_find():
     expected = np.array([v.rfind("EF", 3) for v in values.values], dtype=np.int64)
     tm.assert_numpy_array_equal(result.values, expected)
 
-    result = values >> find("EF", 3, 6)
+    result = values >> find("EF", start=3, end=6)
     tm.assert_series_equal(result, Series([4, 3, -1, 4, -1]))
     expected = np.array([v.find("EF", 3, 6) for v in values.values], dtype=np.int64)
     tm.assert_numpy_array_equal(result.values, expected)
 
-    result = values.str.rfind("EF", 3, 6)
+    result = values.str.rfind("EF", start=3, end=6)
     tm.assert_series_equal(result, Series([4, 3, -1, 4, -1]))
     expected = np.array([v.rfind("EF", 3, 6) for v in values.values], dtype=np.int64)
     tm.assert_numpy_array_equal(result.values, expected)

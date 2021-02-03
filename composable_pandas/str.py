@@ -46,7 +46,7 @@ def capitalize(col):
 
 
 @pipeable
-def find(sub, col, start=0, end=None):
+def find(sub, col, *, start=0, end=None):
     """Return lowest indexes in each strings in the Series/Index
     where the substring is fully contained between [start:end].
     Return -1 on failure. Equivalent to standard :meth:`str.find`.
@@ -57,8 +57,10 @@ def find(sub, col, start=0, end=None):
         Substring being searched.
     start : int
         Left edge index.
+        Is now keyword accessed.
     end : int
         Right edge index.
+        Is now keywork accessed.
     
     Returns
     -------
