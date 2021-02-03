@@ -135,4 +135,4 @@ def findall(pat, col, flags=0, **kwargs):
     2    [b, b]
     dtype: object
     """
-    return col.str.findall(pat, flags=0, **kwargs)
+    return col.str.findall(pat, flags, **kwargs)
