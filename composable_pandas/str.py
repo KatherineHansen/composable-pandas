@@ -54,6 +54,7 @@ def get_dummies(col, *, sep="|"):
     ----------
     sep : str, default "|"
         String to split on.
+        Is now keyword accessed.
     
     Returns
     -------
