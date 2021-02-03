@@ -22,18 +22,18 @@ def test_capitalize():
 
 def test_get_dummies():
     s = Series(["a|b", "a|c", np.nan])
-    result = s >> get_dummies("|")
+    result = s >> get_dummies(sep="|")
     expected = DataFrame([[1, 1, 0], [1, 0, 1], [0, 0, 0]], columns=list("abc"))
     tm.assert_frame_equal(result, expected)
 
     s = Series(["a;b", "a", 7])
-    result = s >> get_dummies(";")
+    result = s >> get_dummies(sep=";")
     expected = DataFrame([[0, 1, 1], [0, 1, 0], [1, 0, 0]], columns=list("7ab"))
     tm.assert_frame_equal(result, expected)
 
     # GH9980, GH8028
     idx = Index(["a|b", "a|c", "b|c"])
-    result = idx >> get_dummies("|")
+    result = idx >> get_dummies(sep="|")
 
     expected = MultiIndex.from_tuples(
         [(1, 1, 0), (1, 0, 1), (0, 1, 1)], names=("a", "b", "c")
