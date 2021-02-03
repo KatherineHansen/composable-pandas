@@ -46,7 +46,7 @@ def capitalize(col):
 
 
 @pipeable
-def get_dummies(col, sep='|'):
+def get_dummies(col, sep="|"):
     """Split each string in the Series by sep and return a DataFrame
     of dummy/indicator variables.
     
@@ -80,4 +80,4 @@ def get_dummies(col, sep='|'):
     2  1  0  1
 
     """
-    return col.str.get_dummies(sep='|')
+    return col.str.get_dummies(sep)
