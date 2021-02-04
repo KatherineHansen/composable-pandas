@@ -1,6 +1,6 @@
 from composable import pipeable
 import pandas as pd
-
+import numpy as np
 
 @pipeable
 def capitalize(col):
@@ -212,3 +212,40 @@ def get(i, col):
     """
     return col.str.get(i)
 
+@pipeable
+def get_dummies(col, *, sep="|"):
+    """Split each string in the Series by sep and return a DataFrame
+    of dummy/indicator variables.
+    
+    Parameters
+    ----------
+    sep : str, default "|"
+        String to split on.
+        Is now keyword accessed.
+    
+    Returns
+    -------
+    DataFrame
+        Dummy variables corresponding to values of the Series.
+    
+    See Also
+    --------
+    get_dummies : Convert categorical variable into dummy/indicator
+        variables.
+    
+    Examples
+    --------
+    >>> pd.Series(['a|b', 'a', 'a|c']) >> get_dummies()
+       a  b  c
+    0  1  1  0
+    1  1  0  0
+    2  1  0  1
+    
+    >>> pd.Series(['a|b', np.nan, 'a|c']) >> get_dummies()
+       a  b  c
+    0  1  1  0
+    1  0  0  0
+    2  1  0  1
+
+    """
+    return col.str.get_dummies(sep)
