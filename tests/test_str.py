@@ -1,13 +1,4 @@
-
-from composable_pandas.str import capitalize, find
-
-from composable_pandas.str import capitalize, findall
-
-from composable_pandas.str import capitalize, get
-
-
-from composable_pandas.str import capitalize, get_dummies
-
+from composable_pandas.str import capitalize, find, findall, get, get_dummies
 from datetime import datetime
 
 import numpy as np

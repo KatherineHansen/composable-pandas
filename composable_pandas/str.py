@@ -160,6 +160,7 @@ def findall(pat, col, flags=0, **kwargs):
     """
     return col.str.findall(pat, flags, **kwargs)
 
+@pipeable
 def get(i, col):
     """Extract element from each component at specified position.
     
