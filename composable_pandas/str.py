@@ -71,15 +71,12 @@ def find(sub, col, *, start=0, end=None):
     rfind : Return highest indexes in each strings.
     """
     return col.str.find(sub, start, end)
+
 @pipeable 
 def findall(pat, col, flags=0, **kwargs):
     """Find all occurrences of pattern or regular expression in the Series/Index.
     
     Equivalent to applying :func:`re.findall` to all the elements in the
-    Series/Index.
-    
-    Parameters
-    ----------
     pat : str
         Pattern or regular expression.
     flags : int, default 0
@@ -162,3 +159,56 @@ def findall(pat, col, flags=0, **kwargs):
     dtype: object
     """
     return col.str.findall(pat, flags, **kwargs)
+
+def get(i, col):
+    """Extract element from each component at specified position.
+    
+    Extract element from lists, tuples, or strings in each element in the
+    Series/Index.
+    
+    Parameters
+    ----------
+    i : int
+        Position of element to extract.
+    
+    Returns
+    -------
+    Series or Index
+    
+    Examples
+    --------
+    >>> s = pd.Series(["String",
+    ...               (1, 2, 3),
+    ...               ["a", "b", "c"],
+    ...               123,
+    ...               -456,
+    ...               {1: "Hello", "2": "World"}])
+    >>> s
+    0                        String
+    1                     (1, 2, 3)
+    2                     [a, b, c]
+    3                           123
+    4                          -456
+    5    {1: 'Hello', '2': 'World'}
+    dtype: object
+    
+    >>> s >> get(1)
+    0        t
+    1        2
+    2        b
+    3      NaN
+    4      NaN
+    5    Hello
+    dtype: object
+    
+    >>> s >> get(-1)
+    0      g
+    1      3
+    2      c
+    3    NaN
+    4    NaN
+    5    None
+    dtype: object
+    """
+    return col.str.get(i)
+
