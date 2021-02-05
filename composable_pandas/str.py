@@ -73,7 +73,7 @@ def find(sub, col, *, start=0, end=None):
     return col.str.find(sub, start, end)
 
 @pipeable 
-def findall(pat, col, flags=0, **kwargs):
+def findall(pat, col, *, flags=0, **kwargs):
     """Find all occurrences of pattern or regular expression in the Series/Index.
     
     Equivalent to applying :func:`re.findall` to all the elements in the
