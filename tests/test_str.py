@@ -1,152 +1,185 @@
-from composable_pandas.str import capitalize, find, findall, get, get_dummies
-from datetime import datetime
+from composable_pandas.str import asfreq, ceil, to_timestamp, total_seconds, tz_localize
 
 import numpy as np
 import pytest
 import pandas as pd
 
-from pandas import DataFrame, Index, MultiIndex, Series, isna, notna
 from pandas import Series, _testing as tm
-
-def test_capitalize():
-    values = Series(["FOO", "BAR", np.nan, "Blah", "blurg"])
-    result = values >> capitalize()
-    exp = Series(["Foo", "Bar", np.nan, "Blah", "Blurg"])
-    tm.assert_series_equal(result, exp)
-
-    # mixed
-    mixed = Series(["FOO", np.nan, "bar", True, datetime.today(), "blah", None, 1, 2.0])
-    mixed = mixed >> capitalize()
-    exp = Series(["Foo", np.nan, "Bar", np.nan, np.nan, "Blah", np.nan, np.nan, np.nan])
-    tm.assert_almost_equal(mixed, exp)
+from pandas import DataFrame, DatetimeIndex, Series, date_range, period_range , Timestamp, Period, TimedeltaIndex
+from pandas.tseries.offsets import BDay, BMonthEnd
+from pandas._libs.tslibs import NaT, Timedelta, Timestamp, conversion
+from pandas.core.arrays import DatetimeArray, TimedeltaArray
+from datetime import datetime
 
 
+def test_asfreq():
+    pi1 = pd.Series(period_range(freq="A", start="1/1/2001", end="1/1/2001"))
+    pi2 = pd.Series(period_range(freq="Q", start="1/1/2001", end="1/1/2001"))
+    pi3 = pd.Series(period_range(freq="M", start="1/1/2001", end="1/1/2001"))
+    pi4 = pd.Series(period_range(freq="D", start="1/1/2001", end="1/1/2001"))
+    pi5 = pd.Series(period_range(freq="H", start="1/1/2001", end="1/1/2001 00:00"))
+    pi6 = pd.Series(period_range(freq="Min", start="1/1/2001", end="1/1/2001 00:00"))
+    pi7 = pd.Series(period_range(freq="S", start="1/1/2001", end="1/1/2001 00:00:00"))
 
-def test_find():
-    values = Series(["ABCDEFG", "BCDEFEF", "DEFGHIJEF", "EFGHEF", "XXXX"])
-    result = values >> find("EF")
-    tm.assert_series_equal(result, Series([4, 3, 1, 0, -1]))
-    expected = np.array([v.find("EF") for v in values.values], dtype=np.int64)
-    tm.assert_numpy_array_equal(result.values, expected)
+    tm.assert_series_equal(pi1 >> asfreq(args=["Q", "S"]), pi2)
+    tm.assert_series_equal(pi1 >> asfreq(args=["Q", "S"]), pi2)
+    tm.assert_series_equal(pi1 >> asfreq(args=["M", "start"]), pi3)
+    tm.assert_series_equal(pi1 >> asfreq(args=["D", "StarT"]), pi4)
+    tm.assert_series_equal(pi1 >> asfreq(args=["H", "beGIN"]), pi5)
+    tm.assert_series_equal(pi1 >> asfreq(args=["Min", "S"]), pi6)
+    tm.assert_series_equal(pi1 >> asfreq(args=["S", "S"]), pi7)
 
-    result = values.str.rfind("EF")
-    tm.assert_series_equal(result, Series([4, 5, 7, 4, -1]))
-    expected = np.array([v.rfind("EF") for v in values.values], dtype=np.int64)
-    tm.assert_numpy_array_equal(result.values, expected)
+    tm.assert_series_equal(pi2 >> asfreq(args=["M", "S"]), pi3)
+    tm.assert_series_equal(pi2 >> asfreq(args=["D", "S"]), pi4)
+    tm.assert_series_equal(pi2 >> asfreq(args=["H", "S"]), pi5)
+    tm.assert_series_equal(pi2 >> asfreq(args=["Min", "S"]), pi6)
+    tm.assert_series_equal(pi2 >> asfreq(args=["S", "S"]), pi7)
 
-    result = values >> find("EF", start=3)
-    tm.assert_series_equal(result, Series([4, 3, 7, 4, -1]))
-    expected = np.array([v.find("EF", 3) for v in values.values], dtype=np.int64)
-    tm.assert_numpy_array_equal(result.values, expected)
+    tm.assert_series_equal(pi3 >> asfreq(args=["A", "S"]), pi1)
+    tm.assert_series_equal(pi3 >> asfreq(args=["Q", "S"]), pi2)
+    tm.assert_series_equal(pi3 >> asfreq(args=["D", "S"]), pi4)
+    tm.assert_series_equal(pi3 >> asfreq(args=["H", "S"]), pi5)
+    tm.assert_series_equal(pi3 >> asfreq(args=["Min", "S"]), pi6)
+    tm.assert_series_equal(pi3 >> asfreq(args=["S", "S"]), pi7)
 
-    result = values.str.rfind("EF", 3)
-    tm.assert_series_equal(result, Series([4, 5, 7, 4, -1]))
-    expected = np.array([v.rfind("EF", 3) for v in values.values], dtype=np.int64)
-    tm.assert_numpy_array_equal(result.values, expected)
+    tm.assert_series_equal(pi4 >> asfreq(args=["A", "S"]), pi1)
+    tm.assert_series_equal(pi4 >> asfreq(args=["Q", "S"]), pi2)
+    tm.assert_series_equal(pi4 >> asfreq(args=["M", "S"]), pi3)
+    tm.assert_series_equal(pi4 >> asfreq(args=["H", "S"]), pi5)
+    tm.assert_series_equal(pi4 >> asfreq(args=["Min", "S"]), pi6)
+    tm.assert_series_equal(pi4 >> asfreq(args=["S", "S"]), pi7)
 
-    result = values >> find("EF", start=3, end=6)
-    tm.assert_series_equal(result, Series([4, 3, -1, 4, -1]))
-    expected = np.array([v.find("EF", 3, 6) for v in values.values], dtype=np.int64)
-    tm.assert_numpy_array_equal(result.values, expected)
+    tm.assert_series_equal(pi5 >> asfreq(args=["A", "S"]), pi1)
+    tm.assert_series_equal(pi5 >> asfreq(args=["Q", "S"]), pi2)
+    tm.assert_series_equal(pi5 >> asfreq(args=["M", "S"]), pi3)
+    tm.assert_series_equal(pi5 >> asfreq(args=["D", "S"]), pi4)
+    tm.assert_series_equal(pi5 >> asfreq(args=["Min", "S"]), pi6)
+    tm.assert_series_equal(pi5 >> asfreq(args=["S", "S"]), pi7)
 
-    result = values.str.rfind("EF", start=3, end=6)
-    tm.assert_series_equal(result, Series([4, 3, -1, 4, -1]))
-    expected = np.array([v.rfind("EF", 3, 6) for v in values.values], dtype=np.int64)
-    tm.assert_numpy_array_equal(result.values, expected)
+    tm.assert_series_equal(pi6 >> asfreq(args=["A", "S"]), pi1)
+    tm.assert_series_equal(pi6 >> asfreq(args=["Q", "S"]), pi2)
+    tm.assert_series_equal(pi6 >> asfreq(args=["M", "S"]), pi3)
+    tm.assert_series_equal(pi6 >> asfreq(args=["D", "S"]), pi4)
+    tm.assert_series_equal(pi6 >> asfreq(args=["H", "S"]), pi5)
+    tm.assert_series_equal(pi6 >> asfreq(args=["S", "S"]), pi7)
 
-    with pytest.raises(TypeError, match="expected a string object, not int"):
-        result = values >> find(0)
+    tm.assert_series_equal(pi7 >> asfreq(args=["A", "S"]), pi1)
+    tm.assert_series_equal(pi7 >> asfreq(args=["Q", "S"]), pi2)
+    tm.assert_series_equal(pi7 >> asfreq(args=["M", "S"]), pi3)
+    tm.assert_series_equal(pi7 >> asfreq(args=["D", "S"]), pi4)
+    tm.assert_series_equal(pi7 >> asfreq(args=["H", "S"]), pi5)
+    tm.assert_series_equal(pi7 >> asfreq(args=["Min", "S"]), pi6)
 
-    with pytest.raises(TypeError, match="expected a string object, not int"):
-        result = values.str.rfind(0)
+    msg = "How must be one of S or E"
+    with pytest.raises(ValueError, match=msg):
+        pi7 >> asfreq(args=["T", "foo"])
+    result1 = pi1 >> asfreq(args=["3M"])
+    result2 = pi1 >> asfreq(args=["M"])
+    expected = pd.Series(period_range(freq="M", start="2001-12", end="2001-12"))
+    tm.assert_numpy_array_equal(result1.index.asi8, expected.index.asi8)
+    tm.assert_numpy_array_equal(result2.index.asi8, expected.index.asi8)
 
-def test_findall():
-    values = Series(["fooBAD__barBAD", np.nan, "foo", "BAD"])
-
-    result = values >> findall("BAD[_]*")
-    exp = Series([["BAD__", "BAD"], np.nan, [], ["BAD"]])
-    tm.assert_almost_equal(result, exp)
-
-    # mixed
-    mixed = Series(
-        [
-            "fooBAD__barBAD",
-            np.nan,
-            "foo",
-            True,
-            datetime.today(),
-            "BAD",
-            None,
-            1,
-            2.0,
-        ]
-    )
-
-    rs = Series(mixed) >> findall("BAD[_]*")
-    xp = Series(
-        [
-            ["BAD__", "BAD"],
-            np.nan,
-            [],
-            np.nan,
-            np.nan,
-            ["BAD"],
-            np.nan,
-            np.nan,
-            np.nan,
-        ]
-    )
-
-    assert isinstance(rs, Series)
-    tm.assert_almost_equal(rs, xp)
-
-def test_get():
-    values = Series(["a_b_c", "c_d_e", np.nan, "f_g_h"])
-
-    result = values.str.split("_") >> get(1)
-    expected = Series(["b", "d", np.nan, "g"])
-    tm.assert_series_equal(result, expected)
-
-    # mixed
-    mixed = Series(["a_b_c", np.nan, "c_d_e", True, datetime.today(), None, 1, 2.0])
-
-    rs = Series(mixed).str.split("_") >> get(1)
-    xp = Series(["b", np.nan, "d", np.nan, np.nan, np.nan, np.nan, np.nan])
-
-    assert isinstance(rs, Series)
-    tm.assert_almost_equal(rs, xp)
-
-    # bounds testing
-    values = Series(["1_2_3_4_5", "6_7_8_9_10", "11_12"])
-
-    # positive index
-    result = values.str.split("_") >> get(2)
-    expected = Series(["3", "8", np.nan])
-    tm.assert_series_equal(result, expected)
-
-    # negative index
-    result = values.str.split("_") >> get(-3)
-    expected = Series(["3", "8", np.nan])
+def test_ceil():
+    dt = pd.Series(Timestamp("20130101 09:10:11"))
+    result = dt >> ceil(args=["D"])
+    expected = pd.Series(Timestamp("20130102"))
     tm.assert_series_equal(result, expected)
 
 
-def test_get_dummies():
-    s = Series(["a|b", "a|c", np.nan])
-    result = s >> get_dummies(sep="|")
-    expected = DataFrame([[1, 1, 0], [1, 0, 1], [0, 0, 0]], columns=list("abc"))
-    tm.assert_frame_equal(result, expected)
+def test_to_timestamp():
+        p = pd.Series(Period("1982", freq="A"))
+        start_ts = p >> to_timestamp(how="S")
+        aliases = ["s", "StarT", "BEGIn"]
+        for a in aliases:
+            tm.assert_series_equal(start_ts,p >> to_timestamp(args=["D"], how=a))
+            # freq with mult should not affect to the result
+            tm.assert_series_equal(start_ts,p >> to_timestamp(args=["3D"], how=a))
 
-    s = Series(["a;b", "a", 7])
-    result = s >> get_dummies(sep=";")
-    expected = DataFrame([[0, 1, 1], [0, 1, 0], [1, 0, 0]], columns=list("7ab"))
-    tm.assert_frame_equal(result, expected)
+        end_ts = p >> to_timestamp(how="E")
+        aliases = ["e", "end", "FINIsH"]
+        for a in aliases:
+            tm.assert_series_equal(end_ts, p >> to_timestamp(args=["D"], how=a))
+            tm.assert_series_equal(end_ts, p >> to_timestamp(args=["3D"], how=a))
 
-    # GH9980, GH8028
-    idx = Index(["a|b", "a|c", "b|c"])
-    result = idx >> get_dummies(sep="|")
+        from_lst = ["A", "Q", "M", "W", "B", "D", "H", "Min", "S"]
+            
+        for i, fcode in enumerate(from_lst):
+            p = pd.Series(Period("1982", freq=fcode))
+            step1 = p >> to_timestamp()
+            result = step1.dt.to_period(fcode)
+            tm.assert_series_equal(result, p)
 
-    expected = MultiIndex.from_tuples(
-        [(1, 1, 0), (1, 0, 1), (0, 1, 1)], names=("a", "b", "c")
-    )
-    tm.assert_index_equal(result, expected)
+            tm.assert_series_equal(p.dt.start_time, p >> to_timestamp(how="S"))
 
+        # Frequency other than daily
+        p = pd.Series(Period("1985", freq="A"))
+
+        result = p >> to_timestamp(args=["H"], how="end")
+        expected = pd.Series(Timestamp(1986, 1, 1) - Timedelta(1, "ns"))
+        tm.assert_series_equal(result, expected)
+        result = p >> to_timestamp(args=["3H"], how="end")
+        tm.assert_series_equal(result, expected)
+
+        result = p >> to_timestamp(args=["T"], how="end")
+        expected = pd.Series(Timestamp(1986, 1, 1) - Timedelta(1, "ns"))
+        tm.assert_series_equal(result, expected)
+        result = p >> to_timestamp(args=["2T"], how="end")
+        tm.assert_series_equal(result, expected)
+
+        result = p >> to_timestamp(how="end")
+        expected = pd.Series(Timestamp(1986, 1, 1) - Timedelta(1, "ns"))
+        tm.assert_series_equal(result, expected)
+
+        expected = pd.Series(datetime(1985, 1, 1))
+        result = p >> to_timestamp(args=["H"], how="start")
+        tm.assert_series_equal(result, expected)
+        result = p >> to_timestamp(args=["T"], how="start")
+        tm.assert_series_equal(result, expected)
+        result = p >> to_timestamp(args=["S"], how="start")
+        tm.assert_series_equal(result, expected)
+        result = p >> to_timestamp(args=["3H"], how="start")
+        tm.assert_series_equal(result, expected)
+        result = p >> to_timestamp(args=["5S"], how="start")
+        tm.assert_series_equal(result, expected)
+
+
+@pytest.fixture
+def timedelta_index():
+    """
+    A fixture to provide TimedeltaIndex objects with different frequencies.
+     Most TimedeltaArray behavior is already tested in TimedeltaIndex tests,
+    so here we just test that the TimedeltaArray behavior matches
+    the TimedeltaIndex behavior.
+    """
+    # TODO: flesh this out
+    return TimedeltaIndex(["1 Day", "3 Hours", "NaT"])
+def test_total_seconds(timedelta_index):
+        tdi = pd.Series(timedelta_index)
+        arr = pd.Series(TimedeltaArray(tdi))
+
+        expected = tdi >> total_seconds()
+        result = arr >> total_seconds()
+
+        tm.assert_series_equal(result, expected)
+
+
+@pytest.fixture(params=[pd.DataFrame, pd.Series])
+def frame_or_series(request):
+    """
+    Fixture to parametrize over DataFrame and Series.
+    """
+    return request.param
+def test_tz_localize(frame_or_series):
+        rng = date_range("1/1/2011", periods=100, freq="H")
+
+        obj = DataFrame({"a": 1}, index=rng)
+        if frame_or_series is not DataFrame:
+            obj = obj["a"]
+
+        result = obj.tz_localize("utc")
+        expected = DataFrame({"a": 1}, pd.Series(rng) >> tz_localize(args=["UTC"]))
+        if frame_or_series is not DataFrame:
+            expected = expected["a"]
+
+        assert result.index.tz.zone == "UTC"
+        tm.assert_equal(result, expected)
